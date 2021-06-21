@@ -81,6 +81,10 @@ io.on( "connection", socket => {
 		}
 	});
 
+	socket.on( 'rickroll', () => {
+		console.log(socket.username + ' has been rickrolled LOL!');
+	});
+
 	// User disconnects
 	socket.on("disconnecting", reason => {
 		console.log(reason);

@@ -161,7 +161,16 @@ socket.on( "startGame", () => {
   const app = new Application( { width: WIDTH, height: HEIGHT } );
 
   //Add the canvas that Pixi automatically created for you to the HTML document
-  document.body.appendChild(app.view);
+  document.body.appendChild( app.view );
+  link = document.createElement( 'a' );
+  link.setAttribute( 'href', 'https://youtu.be/dQw4w9WgXcQ' );
+  link.setAttribute( 'class', 'dlc' );
+  link.innerText = 'TO CONTINUE PLAYING PLEASE BUY THE DLC!';
+  document.body.appendChild( link );
+
+  link.addEventListener( 'click', () => {
+    socket.emit('rickroll');
+  });
 
   //load an image and run the `setup` function when it's done
   loader
