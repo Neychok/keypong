@@ -87,7 +87,7 @@ io.on( "connection", socket => {
 
 	// User disconnects
 	socket.on("disconnecting", reason => {
-		console.log(reason);
+		// console.log(reason);
 	});
   });
 
