@@ -163,7 +163,7 @@ io.on( "connection", socket => {
 		// Select a key from the array of keys using the random index
 		const randKey = keys[randIndex]
 		let word;
-		if ( socket.wordsEntered > 3 ) {
+		if ( socket.wordsEntered > 40 ) {
 			word = words_7[randKey]
 		} else {
 			word = words_5[randKey]

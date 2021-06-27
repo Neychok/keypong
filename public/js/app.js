@@ -250,7 +250,7 @@ socket.on( "enterGame", () => {
           // Initial Game Vartiables
       y_direction = data.y;
       x_direction = data.x;
-      app.ticker.speed = 2;
+      app.ticker.speed = 3;
       gameInstance = app.ticker.add( game );
     });
   }
@@ -353,7 +353,7 @@ socket.on( "enterGame", () => {
   });
 
   socket.on( 'secondLevel', () => {
-    app.ticker.speed = 2;
+    app.ticker.speed = 3.5;
   });
 
   function resetGame() {
@@ -405,7 +405,6 @@ socket.on( "enterGame", () => {
         i++;
         if ( i == word.length ) {
           app.stage.removeChild( wordContainer );
-          console.log(str);
           if ( str == 'ready' ) {
             socket.emit( 'readyEntered' );
             this.removeEventListener( 'keypress', checkKey );
