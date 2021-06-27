@@ -136,7 +136,8 @@ socket.on( 'markReady', data => {
 
 
 // Game Start
-socket.on( "startGame", () => {
+socket.on( "enterGame", () => {
+
 
   document.getElementById( 'screen' ).style.display = 'none';
 
@@ -145,15 +146,12 @@ socket.on( "startGame", () => {
   const HEIGHT = 512
 
   //Aliases
-  const Application = PIXI.Application,
-      loader        = PIXI.loader,
-      resources     = PIXI.loader.resources,
-      Sprite        = PIXI.Sprite,
-      TextureCache  = PIXI.utils.TextureCache,
-      Rectangle     = PIXI.Rectangle,
-      Graphics      = PIXI.Graphics,
-      Text          = PIXI.Text,
-      TextStyle     = PIXI.TextStyle;
+  const Application            = PIXI.Application,
+        loader                 = PIXI.loader,
+        Graphics               = PIXI.Graphics,
+        Text                   = PIXI.Text,
+        TextStyle              = PIXI.TextStyle;
+        DisplayObjectContainer = PIXI.DisplayObjectContainer;
 
   let player1, player2, ball, line;   
 
@@ -162,15 +160,6 @@ socket.on( "startGame", () => {
 
   //Add the canvas that Pixi automatically created for you to the HTML document
   document.body.appendChild( app.view );
-  link = document.createElement( 'a' );
-  link.setAttribute( 'href', 'https://youtu.be/dQw4w9WgXcQ' );
-  link.setAttribute( 'class', 'dlc' );
-  link.innerText = 'TO CONTINUE PLAYING PLEASE BUY THE DLC!';
-  document.body.appendChild( link );
-
-  link.addEventListener( 'click', () => {
-    socket.emit('rickroll');
-  });
 
   //load an image and run the `setup` function when it's done
   loader
@@ -185,17 +174,44 @@ socket.on( "startGame", () => {
     
     //Display the percentage of files currently loaded
     console.log("progress: " + loader.progress + "%"); 
-    
-    //If you gave your files names as the first argument 
-    //of the `add` method, you can access them like this
-    //console.log("loading: " + resource.name);
     }
 
+  let speed = 2;
+  let y_direction = 1;
+  let x_direction = 1;
+  let player1_hitable = false;
+  let player2_hitable = false;
+  let wordContainer, i, str;
+  let word = [];
+
+  let neutralStyle = new TextStyle({
+    fontFamily: "Arial",
+    fontSize: 36,
+    fill: "white",
+  });
+  let wrongStyle = new TextStyle({
+    fontFamily: "Arial",
+    fontSize: 36,
+    fill: "red",
+  });
+  let correctStyle = new TextStyle({
+    fontFamily: "Arial",
+    fontSize: 36,
+    fill: "green",
+  });
+  let scoreStyle = new TextStyle({
+    fontFamily: "Arial",
+    fontSize: 72,
+    fill: 0x444444,
+  });
+  
   //This `setup` function will run when the image has loaded
   function setup() {
     //Create the cat sprite
     player1 = new Graphics();
     player2 = new Graphics();
+    player1_score = new Text( 0, scoreStyle );
+    player2_score = new Text( 0, scoreStyle );
     ball    = new Graphics();
     line    = new Graphics();
     player1.beginFill(0xff0000);
@@ -214,76 +230,208 @@ socket.on( "startGame", () => {
     ball.endFill();
     line.endFill();
 
-    player1.position.set( 32, HEIGHT/2-42 );
-    player2.position.set( WIDTH-32, HEIGHT/2-42 );
+    player1.position.set( 16, HEIGHT/2-42 );
+    player2.position.set( WIDTH-24, HEIGHT/2-42 );
+    player1_score.position.set( WIDTH - 800, HEIGHT/2-36 );
+    player2_score.position.set( WIDTH - 275, HEIGHT/2-36 );
     ball.position.set( WIDTH/2, HEIGHT/2 );
     line.position.set( WIDTH/2-4, 0 );
 
     app.stage.addChild( line );
     app.stage.addChild( player1 );
     app.stage.addChild( player2 );
+    app.stage.addChild( player1_score );
+    app.stage.addChild( player2_score );
     app.stage.addChild( ball );
 
-    console.log(player);
+    keyboard( 'ready' );
+
+    socket.on( 'gameStart', data => {
+          // Initial Game Vartiables
+      y_direction = data.y;
+      x_direction = data.x;
+      app.ticker.speed = 2;
+      gameInstance = app.ticker.add( game );
+    });
+  }
+
+  // TICKER
+  const game = function game( delta ) {
+    
+    // Checks if ball hit a player 1
+    if ( ball.x <= 40 && player1_hitable ) {
+      if ( x_direction == -1 ) {
+        x_direction = 1;
+      } else {
+        x_direction = -1;
+      }
+      player1_hitable = false;
+      if ( player == 2 ) {
+        socket.emit( 'word' );
+      }
+    }
+
+    // Checks if ball hit player 2
+    if ( ball.x >= WIDTH-40 && player2_hitable ) {
+      if ( x_direction == -1 ) {
+        x_direction = 1;
+      } else {
+        x_direction = -1;
+      }
+      player2_hitable = false;
+      if ( player == 1 ) {
+        socket.emit( 'word' );
+      }
+    }
+
+    // Checks if ball hit upper and lower wall
+    if ( ball.y >= HEIGHT - 16 ) {
+      y_direction = -1;
+    }
+    else if ( ball.y <= 16 ){
+      y_direction = 1;
+    }
+
+    // Player 1 scores
+    if ( ball.x > WIDTH ) {
+      resetGame();
+      app.ticker.remove( game );
+
+      if ( player == 1 ) {
+        socket.emit( 'scored' );
+      }
+    }
+    // Player 2 scores
+    else if ( ball.x <= 0 ) {
+      resetGame();
+      app.ticker.remove( game );
+
+      if ( player == 2 ) {
+        socket.emit( 'scored' );
+      }
+    }
+   
+    ball.x += delta * x_direction;
+    ball.y += delta * y_direction;
+
+    if ( ball.y < HEIGHT - 42 && ball.y > 42 ) {
+      player1.y = ball.y - 42;
+      player2.y = ball.y - 42;
+    };
+  }
+  // END OF TICKER
+
+  socket.on( 'word', data => {
+    keyboard( data.word );
+  });
+
+  socket.on( 'enemyEnteredWord', () => {
     if ( player == 1 ) {
-      keyboard( 'ready', WIDTH - 850, HEIGHT - 80 );
+      player2_hitable = true;
+    } else {
+      player1_hitable = true;
+    }
+  });
+
+  socket.on( 'scoreUpdate', data => {
+    if ( data.player == 1 ) {
+      app.stage.removeChild( player1_score );
+      player1_score = new Text( data.score, scoreStyle );
+      player1_score.position.set( WIDTH - 800, HEIGHT/2-36 );
+      app.stage.addChild( player1_score );
+    } else {
+      app.stage.removeChild( player2_score );
+      player2_score = new Text( data.score, scoreStyle );
+      player2_score.position.set( WIDTH - 275, HEIGHT/2-36 );
+      app.stage.addChild( player2_score );
+    }
+  });
+
+  socket.on( 'speedIncrease', data => {
+    app.ticker.speed = app.ticker.speed + 0.1;
+    console.log(app.ticker.speed);
+  });
+
+  socket.on( 'secondLevel', () => {
+    app.ticker.speed = 2;
+  });
+
+  function resetGame() {
+    app.ticker.speed = 1;
+    ball.position.set( WIDTH / 2, HEIGHT / 2 );
+    player1.position.set( 16, HEIGHT / 2 - 42 );
+    player2.position.set( WIDTH - 24, HEIGHT / 2 - 42 );
+    speed = 2;
+    player1_hitable = false;
+    player2_hitable = false;
+    keyboard( 'ready' );
+  }
+  
+  // Display a word and wait for input
+  function keyboard( string ) {
+    let startW, startH;
+    str = string;
+    word = [];
+    i = 0;
+    document.removeEventListener( "keypress", checkKey );
+    app.stage.removeChild( wordContainer );
+    
+    if ( player == 1 ) {
+      startW = WIDTH - 850;
+      startH = HEIGHT - 80;
     }
     else if ( player == 2 ) {
-      keyboard( 'ready', WIDTH - 300, HEIGHT - 80 );
+      startW = WIDTH - 300;
+      startH = HEIGHT - 80;
     }
-
-    // Start Game
-    app.ticker.add( delta => game( delta ) );
-  }
-
-  function game( delta ) {
-    ball.x += 1;
-  }
-
-  function keyboard( str, startW, startH ) {
-    let neutralStyle = new TextStyle({
-      fontFamily: "Arial",
-      fontSize: 36,
-      fill: "white",
-    });
-    let wrongStyle = new TextStyle({
-      fontFamily: "Arial",
-      fontSize: 36,
-      fill: "red",
-    });
-    let correctStyle = new TextStyle({
-      fontFamily: "Arial",
-      fontSize: 36,
-      fill: "green",
-    });
-    let word = [];
+    
+    wordContainer = new DisplayObjectContainer();
+    app.stage.addChild( wordContainer );
     for ( let char = 0, space = 0; char < str.length; char++ ) {
       word.push( new Text( str[char], neutralStyle) );
       if ( char > 0 ) {
         space += word[char-1].width
       }
       word[char].position.set( startW + space + 10, startH );
-      app.stage.addChild( word[char] );
+      wordContainer.addChild( word[char] );
     }
-    let i = 0;
-    document.addEventListener("keypress", function(event) {
-      if ( i < word.length ){
-        if ( event.key == str[i] ){
-          word[i].style = correctStyle;
-          i++;
-        } else {
-          word[i].style = wrongStyle;
+    document.addEventListener( "keypress", checkKey );
+  }
+
+  function checkKey( event ) {
+    if ( i < word.length ) {
+      if ( event.key == str[i] ) {
+        word[i].style = correctStyle;
+        i++;
+        if ( i == word.length ) {
+          app.stage.removeChild( wordContainer );
+          console.log(str);
+          if ( str == 'ready' ) {
+            socket.emit( 'readyEntered' );
+            this.removeEventListener( 'keypress', checkKey );
+            return;
+          } else {
+            socket.emit( 'wordEntered' );
+            if ( player == 1 ) {
+              player1_hitable = true;
+            } else {
+              player2_hitable = true;
+            }
+            this.removeEventListener( 'keypress', checkKey );
+            return;
+          }
         }
       } else {
-        return true;
+        word[i].style = wrongStyle;
       }
-    });
+    }
   }
+
+
+
 });
 
 // HELPER FUNCTIONS
-
-// KEYBOARD KEY
 
 
 // SHOWS AVAILABLE ROOMS
