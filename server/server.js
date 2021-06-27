@@ -14,7 +14,6 @@ const roomRegex = new RegExp('^room_');
 
 let words_5 = require('./5words.json');
 let words_7 = require('./7words.json');
-console.log(words_7);
 
 app.use( express.static( publicPath ) );
 
