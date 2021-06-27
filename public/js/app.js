@@ -176,7 +176,6 @@ socket.on( "enterGame", () => {
     console.log("progress: " + loader.progress + "%"); 
     }
 
-  let speed = 2;
   let y_direction = 1;
   let x_direction = 1;
   let player1_hitable = false;
@@ -234,7 +233,7 @@ socket.on( "enterGame", () => {
     player2.position.set( WIDTH-24, HEIGHT/2-42 );
     player1_score.position.set( WIDTH - 800, HEIGHT/2-36 );
     player2_score.position.set( WIDTH - 275, HEIGHT/2-36 );
-    ball.position.set( WIDTH/2, HEIGHT/2 );
+    ball.position.set( WIDTH/2-8, HEIGHT/2-8 );
     line.position.set( WIDTH/2-4, 0 );
 
     app.stage.addChild( line );
@@ -250,7 +249,7 @@ socket.on( "enterGame", () => {
           // Initial Game Vartiables
       y_direction = data.y;
       x_direction = data.x;
-      app.ticker.speed = 3;
+      app.ticker.speed = 3.5;
       gameInstance = app.ticker.add( game );
     });
   }
@@ -348,7 +347,7 @@ socket.on( "enterGame", () => {
   });
 
   socket.on( 'speedIncrease', data => {
-    app.ticker.speed = app.ticker.speed + 0.1;
+    app.ticker.speed = app.ticker.speed + 0.15;
     console.log(app.ticker.speed);
   });
 
@@ -358,7 +357,7 @@ socket.on( "enterGame", () => {
 
   function resetGame() {
     app.ticker.speed = 3;
-    ball.position.set( WIDTH / 2, HEIGHT / 2 );
+    ball.position.set( WIDTH / 2 - 8, HEIGHT / 2 - 8 );
     player1.position.set( 16, HEIGHT / 2 - 42 );
     player2.position.set( WIDTH - 24, HEIGHT / 2 - 42 );
     speed = 2;
