@@ -357,7 +357,7 @@ socket.on( "enterGame", () => {
   });
 
   function resetGame() {
-    app.ticker.speed = 1;
+    app.ticker.speed = 3;
     ball.position.set( WIDTH / 2, HEIGHT / 2 );
     player1.position.set( 16, HEIGHT / 2 - 42 );
     player2.position.set( WIDTH - 24, HEIGHT / 2 - 42 );
