@@ -150,7 +150,7 @@ io.on( "connection", socket => {
 		if ( socket.wordsEntered == 40 ) {
 			io.to( socket.room ).emit( 'secondLevel' );
 		}
-		if ( socket.wordsEntered > 3 ) {
+		if ( socket.wordsEntered > 40 ) {
 			keys = Object.keys(words_7); 
 		} else {
 			keys = Object.keys(words_5);
