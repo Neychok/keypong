@@ -40,6 +40,7 @@ io.on( "connection", socket => {
 		socket.score = 0;
 		socket.wordsEntered = 0;
 		socket.emit( 'setPlayer', socket.player );
+		console.log( socket.username + ' created a room: ' + socket.room );
 	})
 
 	// User join a lobby room
@@ -55,11 +56,12 @@ io.on( "connection", socket => {
 		socket.emit( 'setPlayer', socket.player );
 		io.to( data.room ).emit( 'reserveSpot', { player: player.username } );
 	});
-
+	
 	// User picks username
 	socket.on( 'usernamePicked', data => {
 		socket.username = data.username;
 		io.to( socket.room ).emit( 'usernamePicked', data.username );
+		console.log( socket.username + ' joined room: ' + socket.room );
 	});
 
 	// Mark player as ready
