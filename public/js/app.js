@@ -249,7 +249,7 @@ socket.on( "enterGame", () => {
           // Initial Game Vartiables
       y_direction = data.y;
       x_direction = data.x;
-      app.ticker.speed = 4;
+      app.ticker.speed = 5;
       gameInstance = app.ticker.add( game );
     });
   }
@@ -347,16 +347,16 @@ socket.on( "enterGame", () => {
   });
 
   socket.on( 'speedIncrease', data => {
-    app.ticker.speed = app.ticker.speed + 0.15;
+    app.ticker.speed = app.ticker.speed + 0.2;
     console.log(app.ticker.speed);
   });
 
   socket.on( 'secondLevel', () => {
-    app.ticker.speed = 3.5;
+    app.ticker.speed = 4.5;
   });
 
   function resetGame() {
-    app.ticker.speed = 4;
+    app.ticker.speed = 5;
     ball.position.set( WIDTH / 2, HEIGHT / 2 );
     player1.position.set( 16, HEIGHT / 2 - 42 );
     player2.position.set( WIDTH - 24, HEIGHT / 2 - 42 );
